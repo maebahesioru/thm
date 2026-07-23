@@ -52,25 +52,19 @@ function buildClock(): string | null {
   ].join(",");
 }
 
-// TV風テロップ (下部帯 + 赤ラベル + 右→左流れる文字、文字に半透明黒背景)
+// 下部テロップ (黒帯背景なし、文字のみ)
 function buildTickerFilter(): string | null {
   const font = findFont(true);
   if (!font) return null;
   const f = ffPath(font);
   const tf = ffPath(TICKER_FILE);
-  // 帯全体: 黒半透明 / ラベル: 赤い"THM" / 本文: 白字スクロール
   return [
-    // テロップ背景帯 (黒半透明, 全幅, 高さ60px)
-    `drawbox=x=0:y=h-60:w=iw:h=60:color=black@0.85:t=fill`,
-    // ラベル背景 (赤, 左端 幅100px)
-    `drawbox=x=0:y=h-60:w=100:h=60:color=red@0.95:t=fill`,
-    // ラベル文字 "THM"
-    `drawtext=fontfile='${f}':text='THM':fontsize=30:fontcolor=white:x=14:y=h-26`,
+    // THMラベル (赤)
+    `drawtext=fontfile='${f}':text='THM':fontsize=30:fontcolor=red:borderw=2:bordercolor=black:x=14:y=h-26`,
     // テロップ本文 (大きく、黒背景付きでスクロール)
     `drawtext=fontfile='${f}':textfile='${tf}':reload=1:` +
-      `fontsize=40:fontcolor=white:borderw=0:` +
-      `box=1:boxcolor=black@0.6:boxborderw=6:` +
-      `x=w-mod(t*160\\,w+tw+120):y=h-42`,
+      `fontsize=40:fontcolor=white:borderw=2:bordercolor=black:` +
+      `x=w-mod(t*160\\,w+tw+120):y=h-26`,
   ].join(",");
 }
 
