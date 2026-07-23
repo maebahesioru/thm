@@ -36,25 +36,17 @@ function buildTitleBar(): string | null {
   ].join(",");
 }
 
-// mc-clock風 時計 (上部中央 / LIVE + 時刻(下線付き) + 日付+曜日)
+// mc-clock05風 時計 (左上 / HH:MM + ⚡LIVE)
 function buildClock(): string | null {
   const font = findFont(true);
   if (!font) return null;
   const f = ffPath(font);
-  const cx = "(w-192)/2"; // 中央配置用
   return [
-    // 背景ボックス (白半透明、下部角丸はdrawbox非対応のため矩形)
-    `drawbox=x=${cx}:y=0:w=192:h=120:color=white@0.7:t=fill`,
-    // LIVEラベル (枠線付き)
-    `drawtext=fontfile='${f}':text='LIVE':fontsize=20:fontcolor=black:x=(w-text_w)/2:y=27:borderw=3:bordercolor=black`,
-    // 時刻の下線
-    `drawbox=x=(w-130)/2:y=78:w=130:h=2:color=black@0.5:t=fill`,
-    // 時刻 HH:MM (大)
-    `drawtext=fontfile='${f}':text='%{localtime\\:%H}\\:%{localtime\\:%M}':` +
-      `fontsize=52:fontcolor=black:x=(w-text_w)/2:y=67`,
-    // 日付+曜日 MM/DD ddd
-    `drawtext=fontfile='${f}':text='%{localtime\\:%m/%d\\ %a}':` +
-      `fontsize=26:fontcolor=black@0.7:x=(w-text_w)/2:y=104`,
+    // 背景ボックス (左上、白)
+    `drawbox=x=15:y=15:w=300:h=64:color=white@1:t=fill`,
+    // HH:MM ⚡LIVE
+    `drawtext=fontfile='${f}':text='%{localtime\\:%H:%M}  LIVE':` +
+      `fontsize=48:fontcolor=black:x=30:y=58`,
   ].join(",");
 }
 
