@@ -271,6 +271,21 @@ export class Engine {
     await prisma.queueItem.update({ where: { id: item.id }, data: { status: "airing" } });
     const startedAt = Date.now();
     const duration = await probeDuration(item.filePath);
+
+    // 番組表に表示するためのProgram行を作成
+    const guideProgram = await prisma.program.create({
+      data: {
+        title: item.title,
+        sourceType: "queue",
+        sourceId: item.id,
+        durationSec: Math.ceil(duration),
+        startAt: new Date(startedAt),
+        endAt: new Date(startedAt + Math.ceil(duration) * 1000),
+        kind: "queue",
+        status: "airing",
+      },
+    });
+
     const { completed } = await this.playUnit({
       kind: "queue",
       title: item.title,
@@ -280,7 +295,7 @@ export class Engine {
     });
     if (completed) {
       await prisma.queueItem.update({ where: { id: item.id }, data: { status: "done" } });
-      // キュー放送で遅れた分、今後の番組表をシフト
+      await prisma.program.update({ where: { id: guideProgram.id }, data: { status: "done" } });
       await this.shiftFutureSchedule(Date.now() - startedAt);
       this.lastFinishedProgramId = `queue:${item.id}`;
     } else {
