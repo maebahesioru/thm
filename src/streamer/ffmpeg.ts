@@ -43,7 +43,7 @@ function buildClock(): string | null {
   const f = ffPath(font);
   return [
     `drawbox=x=w-130:y=58:w=122:h=46:color=black@0.7:t=fill`,
-    `drawtext=fontfile='${f}':text='%{localtime\\:%H.%M}':` +
+    `drawtext=fontfile='${f}':text='%{localtime\\:%H}\\:%{localtime\\:%M}':` +
       `fontsize=28:fontcolor=white:borderw=0:x=w-120:y=90`,
   ].join(",");
 }
