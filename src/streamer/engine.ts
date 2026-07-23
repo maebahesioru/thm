@@ -384,6 +384,19 @@ export class Engine {
     } else {
       file = await downloadVideo(program.sourceType, program.sourceId);
     }
+
+    // ダウンロード失敗時は1回リトライ、それでもダメならスキップ
+    if (!file && program.sourceType === "niconico") {
+      console.log(`[engine] DL失敗リトライ: ${program.sourceId}`);
+      await sleep(5000);
+      file = await downloadVideo(program.sourceType, program.sourceId);
+    }
+    if (!file && program.sourceType === "niconico") {
+      console.log(`[engine] DL失敗スキップ: ${program.title}`);
+      await prisma.program.update({ where: { id: program.id }, data: { status: "skipped" } });
+      await this.shiftFutureSchedule(-program.durationSec * 1000);
+      return;
+    }
     const unit: Parameters<Engine["playUnit"]>[0] = file
       ? {
           kind: "program",

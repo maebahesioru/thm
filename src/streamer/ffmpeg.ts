@@ -68,7 +68,7 @@ function buildTickerFilter(): string | null {
     `drawtext=fontfile='${f}':textfile='${tf}':reload=1:` +
       `fontsize=40:fontcolor=white:borderw=0:` +
       `box=1:boxcolor=black@0.6:boxborderw=6:` +
-      `x=w-mod(t*160\\,w+tw+120):y=h-36`,
+      `x=w-mod(t*160\\,w+tw+120):y=h-42`,
   ].join(",");
 }
 
