@@ -30,7 +30,8 @@ export async function fetchChannelVideos(handle: string, label: string): Promise
 }
 
 export async function fetchHashtagVideos(tag: string): Promise<YtVideo[]> {
-  return fetchYtPlaylist(`https://www.youtube.com/hashtag/${encodeURIComponent(tag)}`, `#${tag}`, `yt_hashtag_${tag}`);
+  // ytsearchでハッシュタグ検索 (最大10000件)
+  return fetchYtPlaylist(`ytsearch10000:#${tag}`, `#${tag}`, `yt_hashtag_${tag}`);
 }
 
 async function fetchYtPlaylist(url: string, label: string, cacheKey: string): Promise<YtVideo[]> {
