@@ -18,7 +18,7 @@ export type YtVideo = {
 export async function fetchChannelVideos(handle: string, label: string): Promise<YtVideo[]> {
   const cacheKey = `yt_channel_${handle.replace(/[/@]/g, "_")}.json`;
   const cachePath = path.join(CACHE_DIR, cacheKey);
-  const cacheAge = 60 * 60 * 1000; // 1時間キャッシュ
+  const cacheAge = 6 * 60 * 60 * 1000; // 6時間キャッシュ
 
   // キャッシュがあれば使う
   try {
@@ -32,7 +32,7 @@ export async function fetchChannelVideos(handle: string, label: string): Promise
   try {
     const args = [
       "--no-update", "--no-playlist", "--flat-playlist",
-      "--dump-json", "--playlist-end", "200",
+      "--dump-json",
     ];
     // cookies
     if (config.youtubeCookies && fs.existsSync(config.youtubeCookies)) {
@@ -41,7 +41,7 @@ export async function fetchChannelVideos(handle: string, label: string): Promise
     args.push("--js-runtimes", "node", "--remote-components", "ejs:github");
     args.push(url);
 
-    const { stdout } = await run("yt-dlp", args, { maxBuffer: 32 * 1024 * 1024, timeout: 5 * 60 * 1000 });
+    const { stdout } = await run("yt-dlp", args, { maxBuffer: 64 * 1024 * 1024, timeout: 15 * 60 * 1000 });
     const videos: YtVideo[] = [];
     for (const line of stdout.trim().split("\n")) {
       if (!line) continue;
