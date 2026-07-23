@@ -461,12 +461,14 @@ export class Engine {
       console.log(`[engine] 番組終了: ${program.title}`);
     } else {
       // 中断(expectStop)の場合 → 何もしない (割り込み処理が状態を変えている)
-      // ffmpegクラッシュの場合 → 自動リトライ (最大3回)
+      // ffmpegクラッシュの場合 → 自動リトライ (最大10回、RTMPなら無限)
       const cur = await prisma.program.findUnique({ where: { id: program.id } });
       if (cur?.status !== "airing") return;
-      for (let retry = 1; retry <= 3; retry++) {
-        console.error(`[engine] ffmpeg異常終了: ${program.title} (${retry}/3回目リトライ)`);
-        await sleep(5000);
+      const maxRetries = config.streamMode === "rtmp" ? 999 : 3;
+      for (let retry = 1; retry <= maxRetries; retry++) {
+        const delay = retry === 1 ? 2000 : 5000;
+        console.error(`[engine] ffmpeg異常終了: ${program.title} (${retry}回目リトライ)`);
+        await sleep(delay);
         const fresh = await prisma.program.findUnique({ where: { id: program.id } });
         const retryOffset = fresh?.resumeOffsetSec ?? offset;
         const retryUnit: Parameters<Engine["playUnit"]>[0] = file
