@@ -41,6 +41,18 @@ export const WATCH_CHANNELS = [
   { handle: "@HIKAGIN_TV", label: "HIKAGIN TV" },
 ];
 
+// 番組選曲用YouTubeハッシュタグ (監視対象外)
+export const YOUTUBE_HASHTAGS = [
+  "ヒカマニ",
+  "ヒカマー",
+  "seikin_mania",
+  "hikakin_mania",
+  "セイマニ",
+  "ヒカニチ",
+  "ヒカキンの日常",
+  "ゲイマスオ",
+];
+
 // ニコニコタグ一覧 (ユーザー提供)
 export const ALL_TAGS = [
   "hikakin_mania",

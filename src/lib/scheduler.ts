@@ -1,6 +1,6 @@
 import { prisma } from "./db";
 import { pickRandomByTag, nicoUrl, type NicoVideo } from "./niconico";
-import { config, bandFor, CM_TAG, WATCH_CHANNELS, type Band } from "./config";
+import { config, bandFor, CM_TAG, WATCH_CHANNELS, YOUTUBE_HASHTAGS, type Band } from "./config";
 import { youtubeUrl } from "./youtube";
 import { getFullYoutubePool, type YtVideo } from "./youtube-search";
 
@@ -11,7 +11,7 @@ async function getYoutubePool(): Promise<YtVideo[]> {
   if (ytPoolCache && Date.now() - ytPoolCache.fetchedAt < 30 * 60 * 1000) {
     return ytPoolCache.videos;
   }
-  const videos = await getFullYoutubePool(WATCH_CHANNELS);
+  const videos = await getFullYoutubePool(WATCH_CHANNELS, YOUTUBE_HASHTAGS);
   ytPoolCache = { videos, fetchedAt: Date.now() };
   return videos;
 }
