@@ -13,6 +13,7 @@ export const config = {
   streamMode: (process.env.STREAM_MODE || "hls") as "hls" | "rtmp" | "simulate",
   youtubeStreamKey: process.env.YOUTUBE_STREAM_KEY || "",
   youtubeChannelId: process.env.YOUTUBE_CHANNEL_ID || "",
+  youtubeLiveVideoId: process.env.YOUTUBE_LIVE_VIDEO_ID || "",
   nicoCookies: process.env.NICO_COOKIES || "",
   youtubeCookies: process.env.YT_COOKIES || "",
   youtubePollIntervalSec: Number(process.env.YOUTUBE_POLL_INTERVAL_SEC || 60),
