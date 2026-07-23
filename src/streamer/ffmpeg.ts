@@ -54,8 +54,8 @@ function buildClock(): string | null {
     `drawbox=x=17:y=77:w=286:h=1:color=white@1:t=fill`,
     `drawbox=x=19:y=78:w=282:h=1:color=white@1:t=fill`,
   ].join(",");
-  // HH:MM  \u26A1LIVE  (letter-spacingはスペース挿入)
-  const text = `drawtext=fontfile='${f}':text='%{localtime\\:%H:%M}  \u26A1LI VE':` +
+  // HH:MM  LIVE  (letter-spacingはスペース挿入)
+  const text = `drawtext=fontfile='${f}':text='%{localtime\\:%H:%M}  L I V E':` +
     `fontsize=44:fontcolor=black:x=28:y=62`;
   return `${box},${text}`;
 }
