@@ -1,6 +1,6 @@
 import { prisma } from "./db";
 import { pickRandomByTag, nicoUrl, type NicoVideo } from "./niconico";
-import { config, bandFor, FALLBACK_TAGS, CM_TAG, type Band } from "./config";
+import { config, bandFor, CM_TAG, type Band } from "./config";
 
 function shuffled<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -29,7 +29,7 @@ async function buildExcludeIds(days: number, sourceTypes: string[]): Promise<Set
 
 async function pickForBand(band: Band): Promise<{ video: NicoVideo; tag: string } | null> {
   const exclude = await buildExcludeIds(config.replayNgDays, ["niconico"]);
-  const tags = [...shuffled(band.tags), ...shuffled(FALLBACK_TAGS)];
+  const tags = shuffled(band.tags);
   for (const tag of tags) {
     const video = await pickRandomByTag(tag, exclude);
     if (video) return { video, tag };
