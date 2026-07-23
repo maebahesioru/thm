@@ -36,15 +36,22 @@ function buildTitleBar(): string | null {
   ].join(",");
 }
 
-// 右上時計 (テレビ風 / localtimeでリアルタイム更新)
+// mc-clock風 時計 (上部中央 / LIVE + 時刻 + 日付)
 function buildClock(): string | null {
   const font = findFont(true);
   if (!font) return null;
   const f = ffPath(font);
   return [
-    `drawbox=x=w-130:y=58:w=122:h=46:color=black@0.7:t=fill`,
+    // 背景ボックス (上部中央、白半透明)
+    `drawbox=x=(w-200)/2:y=0:w=200:h=108:color=white@0.7:t=fill`,
+    // LIVEラベル
+    `drawtext=fontfile='${f}':text='LIVE':fontsize=22:fontcolor=black:x=(w-text_w)/2:y=20:borderw=2`,
+    // 時刻 HH:MM
     `drawtext=fontfile='${f}':text='%{localtime\\:%H}\\:%{localtime\\:%M}':` +
-      `fontsize=28:fontcolor=white:borderw=0:x=w-120:y=90`,
+      `fontsize=52:fontcolor=black:x=(w-text_w)/2:y=56`,
+    // 日付 MM/DD
+    `drawtext=fontfile='${f}':text='%{localtime\\:%m/%d}':` +
+      `fontsize:24:fontcolor=black@0.7:x=(w-text_w)/2:y=92`,
   ].join(",");
 }
 
