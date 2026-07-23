@@ -21,4 +21,4 @@ RUN mkdir -p /app/data
 
 EXPOSE 3000
 
-CMD ["pnpm", "start"]
+CMD sh -c "npx prisma db push --skip-generate && pnpm start"
