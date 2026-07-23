@@ -28,14 +28,14 @@ const FIELDS = [
 
 async function search(
   tag: string,
-  opts: { limit?: number; offset?: number; exact?: boolean; sort?: string; minLen?: number } = {},
+  opts: { limit?: number; offset?: number; exact?: boolean; minLen?: number } = {},
 ): Promise<{ videos: NicoVideo[]; total: number }> {
-  const { limit = 100, offset = 0, exact = true, sort = "-startTime", minLen = 30 } = opts;
+  const { limit = 100, offset = 0, exact = true, minLen = 30 } = opts;
   const params = new URLSearchParams({
     q: tag,
     targets: exact ? "tagsExact" : "tags",
     fields: FIELDS,
-    _sort: sort,
+    _sort: "-startTime",
     _limit: String(limit),
     _offset: String(offset),
     "filters[lengthSeconds][gte]": String(minLen),
@@ -49,22 +49,20 @@ async function search(
   return { videos: json.data ?? [], total: json.meta?.totalCount ?? 0 };
 }
 
-// タグからランダムに1件拾う (除外IDを考慮)
+// タグから完全ランダムに1件拾う (除外IDを考慮)
 export async function pickRandomByTag(
   tag: string,
   excludeIds: Set<string>,
   opts: { minLen?: number } = {},
 ): Promise<NicoVideo | null> {
   try {
-    // まず総数を調べる
     const head = await search(tag, { limit: 1, minLen: opts.minLen });
     if (head.total === 0) return null;
-    // 最大1000件の範囲でランダムオフセット
-    const maxOffset = Math.min(head.total, 1000);
-    const offset = Math.floor(Math.random() * maxOffset);
+    // 全件からランダムな位置の1件を取得
+    const offset = Math.floor(Math.random() * head.total);
     const { videos } = await search(tag, {
-      limit: 100,
-      offset: Math.min(offset, Math.max(0, head.total - 100)),
+      limit: 1,
+      offset,
       minLen: opts.minLen,
     });
     const candidates = videos.filter((v) => !excludeIds.has(v.contentId));
