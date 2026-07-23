@@ -24,16 +24,13 @@ export type PlayHandle = {
 
 const RTMP_URL = () => `rtmps://a.rtmp.youtube.com/live2/${config.youtubeStreamKey}`;
 
-// 上部タイトルバー (番組名 / textfileで動的更新)
+// 上部タイトル (背景なし)
 function buildTitleBar(): string | null {
   const font = findFont(true);
   if (!font) return null;
   const f = ffPath(font);
   const tf = ffPath(TITLE_FILE);
-  return [
-    `drawbox=x=0:y=0:w=iw:h=56:color=black@0.7:t=fill`,
-    `drawtext=fontfile='${f}':textfile='${tf}':reload=1:fontsize=32:fontcolor=white:borderw=0:x=16:y=40`,
-  ].join(",");
+  return `drawtext=fontfile='${f}':textfile='${tf}':reload=1:fontsize=32:fontcolor=white:borderw=2:bordercolor=black:x=16:y=40`;
 }
 
 // mc-clock05再現 (左上 / 角丸白背景 + textfileで統一)
@@ -63,8 +60,6 @@ function buildTickerFilter(): string | null {
   const tf = ffPath(TICKER_FILE);
   // 帯全体: 黒半透明 / ラベル: 赤い"THM" / 本文: 白字スクロール
   return [
-    // 細い赤ライン
-    `drawbox=x=0:y=h-62:w=iw:h=2:color=red@0.9:t=fill`,
     // テロップ背景帯 (黒半透明, 全幅, 高さ60px)
     `drawbox=x=0:y=h-60:w=iw:h=60:color=black@0.85:t=fill`,
     // ラベル背景 (赤, 左端 幅100px)
