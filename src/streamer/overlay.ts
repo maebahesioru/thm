@@ -31,8 +31,10 @@ export function findFont(bold = false): string | null {
         ? ["C:/Windows/Fonts/BIZ-UDGothicB.ttc", "C:/Windows/Fonts/meiryo.ttc", "C:/Windows/Fonts/msgothic.ttc"]
         : ["C:/Windows/Fonts/BIZ-UDGothicR.ttc", "C:/Windows/Fonts/meiryo.ttc", "C:/Windows/Fonts/msgothic.ttc"])
     : (bold
-        ? ["/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc", "/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc"]
-        : ["/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc"]);
+        ? ["/usr/share/fonts/truetype/roboto/unhinted/RobotoTTF/Roboto-Bold.ttf",
+           "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"]
+        : ["/usr/share/fonts/truetype/roboto/unhinted/RobotoTTF/Roboto-Regular.ttf",
+           "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"]);
   for (const f of candidates) if (fs.existsSync(f)) return f;
   return null;
 }

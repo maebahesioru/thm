@@ -36,16 +36,16 @@ function buildTitleBar(): string | null {
   ].join(",");
 }
 
-// mc-clock05風 時計 (左上 / HH:MM + ⚡LIVE)
+// mc-clock05風 時計 (左上 / HH:MM + L I V E + ⚡)
 function buildClock(): string | null {
   const font = findFont(true);
   if (!font) return null;
   const f = ffPath(font);
   return [
-    // 背景ボックス (左上、白)
-    `drawbox=x=15:y=15:w=300:h=64:color=white@1:t=fill`,
-    // HH:MM ⚡LIVE
-    `drawtext=fontfile='${f}':text='%{localtime\\:%H:%M}  LIVE':` +
+    // 白色背景ボックス (左上)
+    `drawbox=x=15:y=15:w=320:h=64:color=white@1:t=fill`,
+    // HH:MM  L I V E (letter-spacingは手動スペース挿入で対応)
+    `drawtext=fontfile='${f}':text='%{localtime\\:%H:%M}  L I V E':` +
       `fontsize=48:fontcolor=black:x=30:y=58`,
   ].join(",");
 }
