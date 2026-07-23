@@ -134,14 +134,8 @@ export const BANDS: Band[] = [
   },
 ];
 
-// タグで動画が見つからなかった場合のフォールバック
-export const FALLBACK_TAGS = [
-  "ヒカマニ",
-  "hikakin_mania",
-  "ヒカニチ",
-  "ヒカマー",
-  "名作ヒカマニ",
-];
+// タグで動画が見つからなかった場合のフォールバック (全タグ)
+export const FALLBACK_TAGS = ALL_TAGS;
 
 export function jstHour(d: Date = new Date()): number {
   return (d.getUTCHours() + 9) % 24;
