@@ -1,6 +1,7 @@
 import "dotenv/config";
 import fs from "fs";
 import { DATA_DIR, HLS_DIR, UPLOAD_DIR, CACHE_DIR, OVERLAY_DIR } from "../lib/config";
+import { writeTickerFile, ensureOverlayDirs, writeClockFile } from "./overlay";
 import { Engine } from "./engine";
 import { startMonitor } from "./monitor";
 
@@ -10,6 +11,8 @@ async function main() {
   for (const d of [DATA_DIR, HLS_DIR, UPLOAD_DIR, CACHE_DIR, OVERLAY_DIR]) {
     fs.mkdirSync(d, { recursive: true });
   }
+  writeTickerFile("");
+  writeClockFile();
   console.log("[thm] テレビヒカマニ 配信ワーカー起動");
 
   // YouTube新着監視 (バックグラウンド)

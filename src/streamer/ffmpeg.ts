@@ -2,7 +2,7 @@ import { spawn, execFile, ChildProcess } from "child_process";
 import fs from "fs";
 import path from "path";
 import { HLS_DIR, OVERLAY_DIR, config } from "../lib/config";
-import { ffPath, findFont, TICKER_FILE, TITLE_FILE } from "./overlay";
+import { ffPath, findFont, TICKER_FILE, TITLE_FILE, CLOCK_FILE } from "./overlay";
 
 export type PlayRequest = {
   inputFile?: string;
@@ -36,28 +36,23 @@ function buildTitleBar(): string | null {
   ].join(",");
 }
 
-// mc-clock05再現 (左上 / 角丸白背景 + HH:MM + ⚡LI VE)
+// mc-clock05再現 (左上 / 角丸白背景 + textfileで統一)
 function buildClock(): string | null {
   const font = findFont(true);
   if (!font) return null;
   const f = ffPath(font);
-  // 角丸ボックス (drawboxの段差で半径3pxの角丸を近似)
-  const box = [
-    // 上端 (段差)
+  const cf = ffPath(CLOCK_FILE);
+  return [
     `drawbox=x=19:y=15:w=282:h=1:color=white@1:t=fill`,
     `drawbox=x=17:y=16:w=286:h=1:color=white@1:t=fill`,
     `drawbox=x=16:y=17:w=288:h=1:color=white@1:t=fill`,
-    // 本体
     `drawbox=x=15:y=18:w=290:h=58:color=white@1:t=fill`,
-    // 下端 (段差)
     `drawbox=x=16:y=76:w=288:h=1:color=white@1:t=fill`,
     `drawbox=x=17:y=77:w=286:h=1:color=white@1:t=fill`,
     `drawbox=x=19:y=78:w=282:h=1:color=white@1:t=fill`,
+    `drawtext=fontfile='${f}':textfile='${cf}':reload=1:` +
+      `fontsize=44:fontcolor=black:x=28:y=62`,
   ].join(",");
-  // HH:MM  LIVE  (letter-spacingはスペース挿入)
-  const text = `drawtext=fontfile='${f}':text='%{localtime\\:%H:%M}  L I V E':` +
-    `fontsize=44:fontcolor=black:x=28:y=62`;
-  return `${box},${text}`;
 }
 
 // TV風テロップ (下部帯 + 赤ラベル + 右→左流れる文字、文字に半透明黒背景)
@@ -193,13 +188,11 @@ export function play(req: PlayRequest): PlayHandle {
   if (req.commentsAss && fs.existsSync(req.commentsAss)) {
     filters.push(`subtitles='${ffPath(req.commentsAss)}'`);
   }
-  // 上部タイトルバー (動画に焼き付け)
   if (!req.noTicker) {
     const tb = buildTitleBar();
     if (tb) filters.push(tb);
-    // 時計は一時OFF (drawtext再初期化問題のため)
-    // const clk = buildClock();
-    // if (clk) filters.push(clk);
+    const clk = buildClock();
+    if (clk) filters.push(clk);
   }
   if (!req.noTicker) {
     const t = buildTickerFilter();

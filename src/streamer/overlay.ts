@@ -9,6 +9,7 @@ export function ensureOverlayDirs() {
 
 export const TICKER_FILE = path.join(OVERLAY_DIR, "ticker.txt");
 export const TITLE_FILE = path.join(OVERLAY_DIR, "title.txt");
+export const CLOCK_FILE = path.join(OVERLAY_DIR, "clock.txt");
 
 export function writeTickerFile(text: string) {
   ensureOverlayDirs();
@@ -18,6 +19,12 @@ export function writeTickerFile(text: string) {
 export function writeTitleFile(text: string) {
   ensureOverlayDirs();
   fs.writeFileSync(TITLE_FILE, text, "utf-8");
+}
+
+export function writeClockFile() {
+  ensureOverlayDirs();
+  // ffmpeg drawtext textfileは%{localtime}などを解釈可能
+  fs.writeFileSync(CLOCK_FILE, "%{localtime:%H:%M}  L I V E", "utf-8");
 }
 
 // ffmpegフィルタ内で使えるようパスをエスケープ
