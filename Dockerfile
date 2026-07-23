@@ -14,6 +14,7 @@ COPY prisma/ ./prisma/
 RUN pnpm install
 
 COPY . .
+RUN npx prisma db push --skip-generate
 RUN npx next build
 
 RUN mkdir -p /app/data
