@@ -10,10 +10,10 @@ WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@11 --activate
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY prisma/ ./prisma/
 RUN pnpm install
 
 COPY . .
-RUN npx prisma generate
 RUN npx next build
 
 RUN mkdir -p /app/data
