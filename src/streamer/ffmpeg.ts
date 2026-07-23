@@ -149,7 +149,7 @@ export function play(req: PlayRequest): PlayHandle {
     };
   }
 
-  const args: string[] = ["-hide_banner", "-loglevel", "warning", "-y"];
+  const args: string[] = ["-hide_banner", "-loglevel", "error", "-y"];
 
   const filters: string[] = [];
   let mapArgs: string[];

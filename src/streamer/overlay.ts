@@ -47,9 +47,7 @@ function assTime(sec: number): string {
 }
 
 function assEscape(text: string): string {
-  // 絵文字・特殊記号を除去 (フォント非対応の文字)
-  const cleaned = text.replace(/[^\x00-\x7F\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\uFF00-\uFFEF 　！-～0-9a-zA-Z]/g, "");
-  return cleaned.replace(/\\/g, "\\\\").replace(/\{/g, "\\{").replace(/\}/g, "\\}").replace(/\n/g, "\\N");
+  return text.replace(/\\/g, "\\\\").replace(/\{/g, "\\{").replace(/\}/g, "\\}").replace(/\n/g, "\\N");
 }
 
 // ニコニココメント -> 右から左へ流れるASS字幕 (位置・色・サイズ対応)
