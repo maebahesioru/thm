@@ -23,10 +23,22 @@ export const config = {
 
 // 割り込み監視対象のYouTubeチャンネル
 export const WATCH_CHANNELS = [
-  { handle: "@HikakinTV", label: "HikakinTV" },
-  { handle: "@HikakinGames", label: "HikakinGames" },
+  { handle: "@hikakintv", label: "HikakinTV" },
+  { handle: "@hikakingames", label: "HikakinGames" },
+  { handle: "@hikakin", label: "Hikakin" },
+  { handle: "@hikakinblog", label: "HikakinBlog" },
+  { handle: "@hikakincliptv", label: "HikakinClipTV" },
+  { handle: "@hikarukaihatsu", label: "ヒカル開発" },
+  { handle: "@smadigitv", label: "SmaDigiTV" },
   { handle: "@SeikinTV", label: "SeikinTV" },
   { handle: "@SeikinGames", label: "SeikinGames" },
+  { handle: "@SEISANTUBE", label: "SEISANTUBE" },
+  { handle: "user/develop74", label: "develop74" },
+  { handle: "user/MasuoTV", label: "MasuoTV" },
+  { handle: "user/MasuoGames", label: "MasuoGames" },
+  { handle: "@dekakinb", label: "デカキンb" },
+  { handle: "@nisekintv6195", label: "ニセキンTV" },
+  { handle: "@HIKAGIN_TV", label: "HIKAGIN TV" },
 ];
 
 // ニコニコタグ一覧 (ユーザー提供)
