@@ -101,15 +101,15 @@ export function writeCommentsAss(comments: NicoComment[], durationSec: number, o
     const end = assTime(Math.min(c.sec + SPEED_HOLD, durationSec));
     const text = assEscape(c.text);
     lines.push(
-      `Dialogue: 0,${start},${end},Comment,,0,0,0,,{\\move(1400,${y},-200,${y})\\fs${fs}${colorTag}}${text}`,
+      `Dialogue: 0,${start},${end},Comment,,0,0,0,,{\\move(2100,${y},-300,${y})\\fs${fs}${colorTag}}${text}`,
     );
   }
 
   const ass = `[Script Info]
 Title: THM niconico comments
 ScriptType: v4.00+
-PlayResX: 1280
-PlayResY: 720
+PlayResX: 1920
+PlayResY: 1080
 WrapStyle: 2
 ScaledBorderAndShadow: yes
 

@@ -79,7 +79,7 @@ function buildPlaceholderInput(title: string, color: string): { args: string[]; 
     "-f",
     "lavfi",
     "-i",
-    `color=c=${color}:size=1280x720:rate=30`,
+    `color=c=${color}:size=1920x1080:rate=60`,
     "-re",
     "-f",
     "lavfi",
@@ -163,10 +163,10 @@ export function play(req: PlayRequest): PlayHandle {
     mapArgs = ["-map", "0:v:0", "-map", "0:a:0?"];
     audioMixLabel = "0:a";
     filters.push(
-      "scale=1280:720:force_original_aspect_ratio=decrease",
-      "pad=1280:720:(ow-iw)/2:(oh-ih)/2:color=black",
+      "scale=1920:1080:force_original_aspect_ratio=decrease",
+      "pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=black",
       "setsar=1",
-      "fps=30",
+      "fps=60",
       "format=yuv420p",
     );
   } else {
@@ -218,13 +218,13 @@ export function play(req: PlayRequest): PlayHandle {
     "-preset",
     "veryfast",
     "-b:v",
-    "2500k",
-    "-maxrate",
-    "3000k",
-    "-bufsize",
     "6000k",
+    "-maxrate",
+    "8000k",
+    "-bufsize",
+    "12000k",
     "-g",
-    "60",
+    "120",
     "-c:a",
     "aac",
     "-b:a",

@@ -62,7 +62,7 @@ export async function downloadVideo(
       [
         ...ytDlpBaseArgs(sourceType === "youtube" ? "youtube" : "niconico"),
         "-f",
-        "bv*[height<=720]+ba/bv*[height<=720]/b[height<=720]/b",
+        "bv*[height<=1080]+ba/bv*[height<=1080]/b[height<=1080]/b",
         "--merge-output-format",
         "mp4",
         "-o",
