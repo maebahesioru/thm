@@ -6,6 +6,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && chmod +x /usr/local/bin/yt-dlp \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# 絵文字フォントをfontconfigに登録 (libassが使えるように)
+RUN echo '<?xml version="1.0"?>' > /etc/fonts/conf.d/99-emoji.conf && \
+    echo '<!DOCTYPE fontconfig SYSTEM "fonts.dtd">' >> /etc/fonts/conf.d/99-emoji.conf && \
+    echo '<fontconfig>' >> /etc/fonts/conf.d/99-emoji.conf && \
+    echo '  <alias><family>sans-serif</family><prefer><family>Noto Color Emoji</family></prefer></alias>' >> /etc/fonts/conf.d/99-emoji.conf && \
+    echo '</fontconfig>' >> /etc/fonts/conf.d/99-emoji.conf && \
+    fc-cache -f
+
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@11 --activate
 
