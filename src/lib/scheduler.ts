@@ -1,29 +1,32 @@
 import { prisma } from "./db";
 import { pickRandomByTag, nicoUrl, type NicoVideo } from "./niconico";
 import { config, bandFor, CM_TAG, WATCH_CHANNELS, type Band } from "./config";
-import { fetchYoutubePool, youtubeUrl, type FeedEntry } from "./youtube";
+import { youtubeUrl } from "./youtube";
+import { getFullYoutubePool, type YtVideo } from "./youtube-search";
 
-// YouTube動画プール (キャッシュ5分)
-let ytPoolCache: { videos: FeedEntry[]; fetchedAt: number } | null = null;
+// YouTube動画プール (全動画、30分キャッシュ)
+let ytPoolCache: { videos: YtVideo[]; fetchedAt: number } | null = null;
 
-async function getYoutubePool(): Promise<FeedEntry[]> {
-  if (ytPoolCache && Date.now() - ytPoolCache.fetchedAt < 5 * 60 * 1000) {
+async function getYoutubePool(): Promise<YtVideo[]> {
+  if (ytPoolCache && Date.now() - ytPoolCache.fetchedAt < 30 * 60 * 1000) {
     return ytPoolCache.videos;
   }
-  const videos = await fetchYoutubePool(WATCH_CHANNELS);
+  const videos = await getFullYoutubePool(WATCH_CHANNELS);
   ytPoolCache = { videos, fetchedAt: Date.now() };
-  console.log(`[scheduler] YouTube pool: ${videos.length} videos from ${WATCH_CHANNELS.length} channels`);
   return videos;
 }
 
-async function pickYoutubeVideo(): Promise<{ entry: FeedEntry } | null> {
+async function pickYoutubeVideo(): Promise<{ videoId: string; title: string; durationSec: number; thumbnailUrl?: string; channelTitle?: string } | null> {
   const pool = await getYoutubePool();
   if (pool.length === 0) return null;
   const exclude = await buildExcludeIds(config.replayNgDays, ["youtube"]);
-  const candidates = pool.filter((e) => !exclude.has(e.videoId));
+  const candidates = pool.filter((e) => !exclude.has(e.id));
   if (candidates.length === 0) return null;
-  return { entry: candidates[Math.floor(Math.random() * candidates.length)] };
+  const v = candidates[Math.floor(Math.random() * candidates.length)];
+  return { videoId: v.id, title: v.title, durationSec: v.durationSec, channelTitle: v.channelTitle };
 }
+
+function shuffled<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -48,13 +51,12 @@ async function buildExcludeIds(days: number, sourceTypes: string[]): Promise<Set
   return new Set([...history.map((h) => h.sourceId), ...future.map((f) => f.sourceId)]);
 }
 
-async function pickForBand(band: Band): Promise<{ video?: NicoVideo; ytEntry?: FeedEntry; tag?: string } | null> {
-  // ニコニコとYouTubeをランダムに切り替え
+async function pickForBand(band: Band): Promise<{ video?: NicoVideo; yt?: { videoId: string; title: string; durationSec: number; channelTitle?: string }; tag?: string } | null> {
   const sources = ["niconico", "youtube"].sort(() => Math.random() - 0.5);
   for (const src of sources) {
     if (src === "youtube") {
       const yt = await pickYoutubeVideo();
-      if (yt) return { ytEntry: yt.entry };
+      if (yt) return { yt };
     } else {
       const result = await pickNiconico(band);
       if (result) return { video: result.video, tag: result.tag };
@@ -138,9 +140,9 @@ export async function ensureSchedule(horizonHours?: number): Promise<void> {
       continue;
     }
 
-    if (picked.ytEntry) {
-      const e = picked.ytEntry;
-      const durationSec = e.durationSec ?? 600;
+    if (picked.yt) {
+      const e = picked.yt;
+      const dur = e.durationSec ?? 600;
       const program = await prisma.program.create({
         data: {
           title: e.title,
@@ -148,10 +150,10 @@ export async function ensureSchedule(horizonHours?: number): Promise<void> {
           sourceId: e.videoId,
           originUrl: youtubeUrl(e.videoId),
           author: e.channelTitle ?? null,
-          thumbnailUrl: e.thumbnailUrl ?? null,
-          durationSec,
+          thumbnailUrl: null,
+          durationSec: dur,
           startAt: cursor,
-          endAt: new Date(cursor.getTime() + durationSec * 1000),
+          endAt: new Date(cursor.getTime() + dur * 1000),
           band: band.id,
           kind: "program",
           tags: JSON.stringify([]),
@@ -160,7 +162,7 @@ export async function ensureSchedule(horizonHours?: number): Promise<void> {
       cursor = program.endAt;
     } else if (picked.video) {
       const program = await prisma.program.create({
-        data: toProgramData(picked.video, { startAt: cursor, band: band.id, kind: "program", tag: picked.tag }),
+        data: toProgramData(picked.video, { startAt: cursor, band: band.id, kind: "program", tag: picked.tag ?? "ヒカマニ" }),
       });
       cursor = program.endAt;
     }
