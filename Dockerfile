@@ -1,8 +1,8 @@
-FROM node:24-slim
+FROM node:24-bookworm-slim
 
-# システム依存: ffmpeg, yt-dlp, unzip
+# システム依存: ffmpeg, yt-dlp, Prisma用libssl
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ffmpeg unzip python3 curl ca-certificates \
+    ffmpeg unzip python3 curl ca-certificates openssl \
     && curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
     && chmod +x /usr/local/bin/yt-dlp \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -14,7 +14,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # 依存インストール & ビルド
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
 COPY . .
 RUN pnpm build
