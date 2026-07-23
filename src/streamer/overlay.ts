@@ -26,17 +26,13 @@ export function ffPath(p: string): string {
 }
 
 export function findFont(bold = false): string | null {
-  const candidates = bold
-    ? [
-        "C:/Windows/Fonts/BIZ-UDGothicB.ttc",
-        "C:/Windows/Fonts/meiryo.ttc",
-        "C:/Windows/Fonts/msgothic.ttc",
-      ]
-    : [
-        "C:/Windows/Fonts/BIZ-UDGothicR.ttc",
-        "C:/Windows/Fonts/meiryo.ttc",
-        "C:/Windows/Fonts/msgothic.ttc",
-      ];
+  const candidates = process.platform === "win32"
+    ? (bold
+        ? ["C:/Windows/Fonts/BIZ-UDGothicB.ttc", "C:/Windows/Fonts/meiryo.ttc", "C:/Windows/Fonts/msgothic.ttc"]
+        : ["C:/Windows/Fonts/BIZ-UDGothicR.ttc", "C:/Windows/Fonts/meiryo.ttc", "C:/Windows/Fonts/msgothic.ttc"])
+    : (bold
+        ? ["/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc", "/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc"]
+        : ["/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc"]);
   for (const f of candidates) if (fs.existsSync(f)) return f;
   return null;
 }
@@ -60,7 +56,9 @@ export function writeCommentsAss(comments: NicoComment[], durationSec: number, o
   if (comments.length === 0) return false;
 
   const font = findFont(false) ?? "Meiryo";
-  const fontName = font.split("/").pop()?.replace(/\.tt[cf]$/i, "") ?? "Meiryo";
+  const fontName = process.platform === "win32"
+    ? (font.split("/").pop()?.replace(/\.tt[cf]$/i, "") ?? "Meiryo")
+    : "Noto Sans CJK JP";
   const baseFontSize = 44;
 
   // 色マップ (ASSは BBGGRR)
