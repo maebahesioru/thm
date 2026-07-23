@@ -197,8 +197,9 @@ export function play(req: PlayRequest): PlayHandle {
   if (!req.noTicker) {
     const tb = buildTitleBar();
     if (tb) filters.push(tb);
-    const clk = buildClock();
-    if (clk) filters.push(clk);
+    // 時計は一時OFF (drawtext再初期化問題のため)
+    // const clk = buildClock();
+    // if (clk) filters.push(clk);
   }
   if (!req.noTicker) {
     const t = buildTickerFilter();
