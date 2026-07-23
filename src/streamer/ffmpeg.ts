@@ -22,7 +22,7 @@ export type PlayHandle = {
   stop: () => void;
 };
 
-const RTMP_URL = () => `rtmp://a.rtmp.youtube.com/live2/${config.youtubeStreamKey}`;
+const RTMP_URL = () => `rtmps://a.rtmp.youtube.com/live2/${config.youtubeStreamKey}`;
 
 // 上部タイトルバー (番組名 / textfileで動的更新)
 function buildTitleBar(): string | null {
