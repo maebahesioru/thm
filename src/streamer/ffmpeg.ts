@@ -36,18 +36,28 @@ function buildTitleBar(): string | null {
   ].join(",");
 }
 
-// mc-clock05風 時計 (左上 / HH:MM + L I V E + ⚡)
+// mc-clock05再現 (左上 / 角丸白背景 + HH:MM + ⚡LI VE)
 function buildClock(): string | null {
   const font = findFont(true);
   if (!font) return null;
   const f = ffPath(font);
-  return [
-    // 白色背景ボックス (左上)
-    `drawbox=x=15:y=15:w=320:h=64:color=white@1:t=fill`,
-    // HH:MM  L I V E (letter-spacingは手動スペース挿入で対応)
-    `drawtext=fontfile='${f}':text='%{localtime\\:%H:%M}  L I V E':` +
-      `fontsize=48:fontcolor=black:x=30:y=58`,
+  // 角丸ボックス (drawboxの段差で半径3pxの角丸を近似)
+  const box = [
+    // 上端 (段差)
+    `drawbox=x=19:y=15:w=282:h=1:color=white@1:t=fill`,
+    `drawbox=x=17:y=16:w=286:h=1:color=white@1:t=fill`,
+    `drawbox=x=16:y=17:w=288:h=1:color=white@1:t=fill`,
+    // 本体
+    `drawbox=x=15:y=18:w=290:h=58:color=white@1:t=fill`,
+    // 下端 (段差)
+    `drawbox=x=16:y=76:w=288:h=1:color=white@1:t=fill`,
+    `drawbox=x=17:y=77:w=286:h=1:color=white@1:t=fill`,
+    `drawbox=x=19:y=78:w=282:h=1:color=white@1:t=fill`,
   ].join(",");
+  // HH:MM  \u26A1LIVE  (letter-spacingはスペース挿入)
+  const text = `drawtext=fontfile='${f}':text='%{localtime\\:%H:%M}  \u26A1LI VE':` +
+    `fontsize=44:fontcolor=black:x=28:y=62`;
+  return `${box},${text}`;
 }
 
 // TV風テロップ (下部帯 + 赤ラベル + 右→左流れる文字、文字に半透明黒背景)
