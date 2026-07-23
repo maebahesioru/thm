@@ -40,6 +40,22 @@ export async function downloadVideo(
   if (sourceType === "local") {
     return fs.existsSync(sourceId) ? sourceId : null;
   }
+  if (sourceType === "booru") {
+    // sourceId は直接のmp4 URL。キャッシュにダウンロード
+    const key = `booru_${sourceId.replace(/[^a-zA-Z0-9]/g, "_").slice(-60)}`;
+    const out = path.join(CACHE_DIR, `${key}.mp4`);
+    if (fs.existsSync(out) && fs.statSync(out).size > 0) return out;
+    try {
+      console.log(`[downloader] downloading booru: ${sourceId}`);
+      await run("yt-dlp", [...ytDlpBaseArgs("youtube"), "-o", out, sourceId], {
+        maxBuffer: 16 * 1024 * 1024, timeout: 30 * 60 * 1000,
+      });
+      return fs.existsSync(out) ? out : null;
+    } catch (e) {
+      console.error(`[downloader] booru failed:`, (e as Error).message?.slice(0, 200));
+      return null;
+    }
+  }
   const key = sourceType === "youtube" ? `yt_${sourceId}` : `nico_${sourceId}`;
   const out = path.join(CACHE_DIR, `${key}.mp4`);
   if (fs.existsSync(out) && fs.statSync(out).size > 0) return out;

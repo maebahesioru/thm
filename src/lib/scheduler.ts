@@ -3,6 +3,7 @@ import { pickRandomByTag, nicoUrl, type NicoVideo } from "./niconico";
 import { config, bandFor, CM_TAG, WATCH_CHANNELS, YOUTUBE_HASHTAGS, type Band } from "./config";
 import { youtubeUrl } from "./youtube";
 import { getFullYoutubePool, type YtVideo } from "./youtube-search";
+import { pickRandomBooru, type BooruVideo } from "./hikabooru";
 
 // YouTube動画プール (全動画、30分キャッシュ)
 let ytPoolCache: { videos: YtVideo[]; fetchedAt: number } | null = null;
@@ -51,12 +52,16 @@ async function buildExcludeIds(days: number, sourceTypes: string[]): Promise<Set
   return new Set([...history.map((h) => h.sourceId), ...future.map((f) => f.sourceId)]);
 }
 
-async function pickForBand(band: Band): Promise<{ video?: NicoVideo; yt?: { videoId: string; title: string; durationSec: number; channelTitle?: string }; tag?: string } | null> {
-  const sources = ["niconico", "youtube"].sort(() => Math.random() - 0.5);
+async function pickForBand(band: Band): Promise<{ video?: NicoVideo; yt?: { videoId: string; title: string; durationSec: number; channelTitle?: string }; booru?: BooruVideo; tag?: string } | null> {
+  const sources = ["niconico", "youtube", "booru"].sort(() => Math.random() - 0.5);
   for (const src of sources) {
     if (src === "youtube") {
       const yt = await pickYoutubeVideo();
       if (yt) return { yt };
+    } else if (src === "booru") {
+      const exclude = await buildExcludeIds(config.replayNgDays, ["booru"]);
+      const booru = await pickRandomBooru(exclude);
+      if (booru) return { booru };
     } else {
       const result = await pickNiconico(band);
       if (result) return { video: result.video, tag: result.tag };
@@ -140,7 +145,26 @@ export async function ensureSchedule(horizonHours?: number): Promise<void> {
       continue;
     }
 
-    if (picked.yt) {
+    if (picked.booru) {
+      const b = picked.booru;
+      const program = await prisma.program.create({
+        data: {
+          title: b.title,
+          sourceType: "booru",
+          sourceId: String(b.id),
+          originUrl: b.videoUrl,
+          author: "ヒカブー",
+          thumbnailUrl: b.thumbnailUrl ?? null,
+          durationSec: b.durationSec,
+          startAt: cursor,
+          endAt: new Date(cursor.getTime() + b.durationSec * 1000),
+          band: band.id,
+          kind: "program",
+          tags: JSON.stringify(b.tags.slice(0, 5)),
+        },
+      });
+      cursor = program.endAt;
+    } else if (picked.yt) {
       const e = picked.yt;
       const dur = e.durationSec ?? 600;
       const program = await prisma.program.create({
