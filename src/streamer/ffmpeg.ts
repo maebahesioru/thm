@@ -30,7 +30,7 @@ function buildTitleBar(): string | null {
   if (!font) return null;
   const f = ffPath(font);
   const tf = ffPath(TITLE_FILE);
-  return `drawtext=fontfile='${f}':textfile='${tf}':reload=1:fontsize=32:fontcolor=white:borderw=2:bordercolor=black:x=16:y=40`;
+  return `drawtext=fontfile='${f}':textfile='${tf}':reload=1:fontsize=32:fontcolor=white:borderw=3:bordercolor=black:x=16:y=40`;
 }
 
 // mc-clock05再現 (左上 / 角丸白背景 + textfileで統一)
