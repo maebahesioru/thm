@@ -15,6 +15,8 @@ export type FeedEntry = {
   published: Date;
   channelId: string;
   channelTitle: string;
+  durationSec?: number;
+  thumbnailUrl?: string;
 };
 
 export type WatchInfo = {
@@ -64,12 +66,16 @@ export async function fetchFeed(channelId: string): Promise<FeedEntry[]> {
     const title = e.match(/<title>([^<]*)<\/title>/)?.[1] ?? "";
     const published = e.match(/<published>([^<]+)<\/published>/)?.[1];
     if (videoId && published) {
+      const durMatch = e.match(/<yt:duration[^>]*>(\d+)<\/yt:duration>/);
+      const thumbMatch = e.match(/<media:thumbnail[^>]*url="([^"]+)"/);
       entries.push({
         videoId,
         title: decodeEntities(title),
         published: new Date(published),
         channelId,
         channelTitle: decodeEntities(channelTitle),
+        durationSec: durMatch ? parseInt(durMatch[1], 10) : undefined,
+        thumbnailUrl: thumbMatch?.[1] ?? undefined,
       });
     }
   }
@@ -231,4 +237,23 @@ function decodeEntities(s: string): string {
 
 export function youtubeUrl(videoId: string): string {
   return `https://www.youtube.com/watch?v=${videoId}`;
+}
+
+// 監視チャンネル全件のRSSから動画プールを取得
+export async function fetchYoutubePool(channelHandles: Array<{ handle: string; label: string }>): Promise<FeedEntry[]> {
+  const all: FeedEntry[] = [];
+  for (const ch of channelHandles) {
+    const id = await resolveChannelId(ch.handle);
+    if (!id) continue;
+    try {
+      const feed = await fetchFeed(id);
+      for (const e of feed) {
+        e.channelTitle = e.channelTitle || ch.label;
+      }
+      all.push(...feed);
+    } catch (e) {
+      console.error(`[youtube] feed fetch failed for ${ch.label}:`, (e as Error).message);
+    }
+  }
+  return all;
 }

@@ -1,8 +1,29 @@
 import { prisma } from "./db";
 import { pickRandomByTag, nicoUrl, type NicoVideo } from "./niconico";
-import { config, bandFor, CM_TAG, type Band } from "./config";
+import { config, bandFor, CM_TAG, WATCH_CHANNELS, type Band } from "./config";
+import { fetchYoutubePool, youtubeUrl, type FeedEntry } from "./youtube";
 
-function shuffled<T>(arr: T[]): T[] {
+// YouTube動画プール (キャッシュ5分)
+let ytPoolCache: { videos: FeedEntry[]; fetchedAt: number } | null = null;
+
+async function getYoutubePool(): Promise<FeedEntry[]> {
+  if (ytPoolCache && Date.now() - ytPoolCache.fetchedAt < 5 * 60 * 1000) {
+    return ytPoolCache.videos;
+  }
+  const videos = await fetchYoutubePool(WATCH_CHANNELS);
+  ytPoolCache = { videos, fetchedAt: Date.now() };
+  console.log(`[scheduler] YouTube pool: ${videos.length} videos from ${WATCH_CHANNELS.length} channels`);
+  return videos;
+}
+
+async function pickYoutubeVideo(): Promise<{ entry: FeedEntry } | null> {
+  const pool = await getYoutubePool();
+  if (pool.length === 0) return null;
+  const exclude = await buildExcludeIds(config.replayNgDays, ["youtube"]);
+  const candidates = pool.filter((e) => !exclude.has(e.videoId));
+  if (candidates.length === 0) return null;
+  return { entry: candidates[Math.floor(Math.random() * candidates.length)] };
+}
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -27,7 +48,22 @@ async function buildExcludeIds(days: number, sourceTypes: string[]): Promise<Set
   return new Set([...history.map((h) => h.sourceId), ...future.map((f) => f.sourceId)]);
 }
 
-async function pickForBand(band: Band): Promise<{ video: NicoVideo; tag: string } | null> {
+async function pickForBand(band: Band): Promise<{ video?: NicoVideo; ytEntry?: FeedEntry; tag?: string } | null> {
+  // ニコニコとYouTubeをランダムに切り替え
+  const sources = ["niconico", "youtube"].sort(() => Math.random() - 0.5);
+  for (const src of sources) {
+    if (src === "youtube") {
+      const yt = await pickYoutubeVideo();
+      if (yt) return { ytEntry: yt.entry };
+    } else {
+      const result = await pickNiconico(band);
+      if (result) return { video: result.video, tag: result.tag };
+    }
+  }
+  return null;
+}
+
+async function pickNiconico(band: Band): Promise<{ video: NicoVideo; tag: string } | null> {
   const exclude = await buildExcludeIds(config.replayNgDays, ["niconico"]);
   const tags = shuffled(band.tags);
   for (const tag of tags) {
@@ -102,10 +138,32 @@ export async function ensureSchedule(horizonHours?: number): Promise<void> {
       continue;
     }
 
-    const program = await prisma.program.create({
-      data: toProgramData(picked.video, { startAt: cursor, band: band.id, kind: "program", tag: picked.tag }),
-    });
-    cursor = program.endAt;
+    if (picked.ytEntry) {
+      const e = picked.ytEntry;
+      const durationSec = e.durationSec ?? 600;
+      const program = await prisma.program.create({
+        data: {
+          title: e.title,
+          sourceType: "youtube",
+          sourceId: e.videoId,
+          originUrl: youtubeUrl(e.videoId),
+          author: e.channelTitle ?? null,
+          thumbnailUrl: e.thumbnailUrl ?? null,
+          durationSec,
+          startAt: cursor,
+          endAt: new Date(cursor.getTime() + durationSec * 1000),
+          band: band.id,
+          kind: "program",
+          tags: JSON.stringify([]),
+        },
+      });
+      cursor = program.endAt;
+    } else if (picked.video) {
+      const program = await prisma.program.create({
+        data: toProgramData(picked.video, { startAt: cursor, band: band.id, kind: "program", tag: picked.tag }),
+      });
+      cursor = program.endAt;
+    }
 
     // 番組間にCM挿入 (ヒカマニCMリンク)
     for (let i = 0; i < band.cmCount; i++) {
