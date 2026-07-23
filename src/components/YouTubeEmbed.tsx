@@ -1,11 +1,7 @@
 "use client";
 
-export function YouTubeEmbed({ channelId, videoId }: { channelId: string; videoId?: string }) {
-  const src = videoId
-    ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0`
-    : channelId
-      ? `https://www.youtube.com/embed/live_stream?channel=${channelId}&autoplay=1&mute=0`
-      : `https://www.youtube.com/embed/live_stream?channel=UCZf__ehlCEBPop-_sldpBUQ&autoplay=1&mute=0`;
+export function YouTubeEmbed({ channelId }: { channelId: string }) {
+  const src = `https://www.youtube.com/embed/live_stream?channel=${channelId}&autoplay=1&mute=0`;
 
   return (
     <div className="relative w-full aspect-video bg-black rounded-xl border border-neutral-800 overflow-hidden">

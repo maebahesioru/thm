@@ -13,7 +13,7 @@ export default function WatchPage() {
       <p className="text-sm text-neutral-400 mb-6">
         {isRtmp ? "YouTube 本配信中" : "開発プレビュー (HLS)"}
       </p>
-      {isRtmp ? <YouTubeEmbed channelId={config.youtubeChannelId} videoId={config.youtubeLiveVideoId || undefined} /> : <WatchPlayer />}
+      {isRtmp ? <YouTubeEmbed channelId={config.youtubeChannelId} /> : <WatchPlayer />}
     </div>
   );
 }
