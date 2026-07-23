@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-neutral-950 text-neutral-100 antialiased;
+}
+
+@keyframes ticker-scroll {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.ticker-scroll {
+  animation: ticker-scroll 30s linear infinite;
+  white-space: nowrap;
+}
+
+@keyframes blink-onair {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.onair-blink {
+  animation: blink-onair 1.2s ease-in-out infinite;
+}

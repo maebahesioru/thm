@@ -1,0 +1,35 @@
+{
+  "name": "thm",
+  "version": "0.1.0",
+  "private": true,
+  "description": "テレビヒカマニ (THM) - サイト & 配信スクリプト",
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "concurrently -n web,stream \"next start -p 3000\" \"tsx src/streamer/main.ts\"",
+    "stream": "tsx watch --clear-screen=false src/streamer/main.ts",
+    "dev:all": "concurrently -n web,stream \"pnpm dev\" \"pnpm stream\"",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.9.0",
+    "concurrently": "^9.1.2",
+    "dotenv": "^17.4.2",
+    "hls.js": "^1.5.13",
+    "next": "^15.3.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tsx": "^4.19.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.10",
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "prisma": "^6.9.0",
+    "tailwindcss": "^4.1.10",
+    "typescript": "^5.8.3"
+  }
+}

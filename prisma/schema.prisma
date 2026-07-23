@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 番組スロット (番組表の1マス)
+model Program {
+  id              String   @id @default(cuid())
+  title           String
+  sourceType      String // niconico | youtube | local | placeholder
+  sourceId        String // sm123 / youtubeVideoId / filePath / placeholder
+  originUrl       String?
+  author          String?
+  thumbnailUrl    String?
+  durationSec     Int
+  startAt         DateTime
+  endAt           DateTime
+  band            String? // midnight | morning | noon | evening | golden
+  tags            String? // JSON array string
+  kind            String   @default("program") // program | cm | newsflash
+  status          String   @default("scheduled") // scheduled | airing | done | interrupted | skipped
+  resumeOffsetSec Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  @@index([startAt])
+  @@index([status])
+}
+
+// 再放送防止の履歴
+model PlayHistory {
+  id         String   @id @default(cuid())
+  sourceType String
+  sourceId   String
+  title      String?
+  playedAt   DateTime @default(now())
+
+  @@index([sourceType, sourceId, playedAt])
+}
+
+// コントロールパネルからアップされたmp4の放送キュー
+model QueueItem {
+  id          String   @id @default(cuid())
+  title       String
+  filePath    String
+  triggerType String   @default("after_current") // after_current | after_program
+  programId   String? // triggerType=after_program の場合の対象番組
+  note        String?
+  status      String   @default("queued") // queued | airing | done | canceled
+  createdAt   DateTime @default(now())
+}
+
+// テロップ (THMニュース速報など)
+model Ticker {
+  id        String   @id @default(cuid())
+  text      String
+  kind      String   @default("info") // info | breaking
+  active    Boolean  @default(true)
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+}
+
+// HIKAKIN/SEIKIN新着による割り込み記録
+model Interruption {
+  id             String   @id @default(cuid())
+  channelId      String
+  channelTitle   String?
+  youtubeVideoId String   @unique
+  title          String
+  publishAt      DateTime? // プレミア公開の開始予定など
+  status         String   @default("pending") // pending | waiting_premiere | airing | done | skipped_live
+  createdAt      DateTime @default(now())
+}
+
+// YouTube RSSで既出チェックした動画 (初回起動時の暴発防止)
+model SeenVideo {
+  id         String   @id // youtubeVideoId
+  firstSeenAt DateTime @default(now())
+}
+
+// 汎用キーバリュー
+model Setting {
+  key   String @id
+  value String
+}
