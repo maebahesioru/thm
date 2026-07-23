@@ -181,7 +181,10 @@ export function play(req: PlayRequest): PlayHandle {
   if (req.commentsAss && fs.existsSync(req.commentsAss)) {
     filters.push(`subtitles='${ffPath(req.commentsAss)}'`);
   }
+  // 上部タイトルバー (動画に焼き付け)
   if (!req.noTicker) {
+    const tb = buildTitleBar();
+    if (tb) filters.push(tb);
     const clk = buildClock();
     if (clk) filters.push(clk);
   }
