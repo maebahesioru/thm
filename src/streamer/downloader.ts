@@ -41,6 +41,7 @@ export async function downloadVideo(
     return fs.existsSync(sourceId) ? sourceId : null;
   }
   if (sourceType === "booru") {
+    // sourceId は直接のmp4 URL。キャッシュにダウンロード
     const key = `booru_${sourceId.replace(/[^a-zA-Z0-9]/g, "_").slice(-60)}`;
     const out = path.join(CACHE_DIR, `${key}.mp4`);
     if (fs.existsSync(out) && fs.statSync(out).size > 0) return out;
@@ -55,46 +56,27 @@ export async function downloadVideo(
       return null;
     }
   }
-
-  // YouTube/ニコニコ: まずCookie付きで試し、ダメならCookieなし
   const key = sourceType === "youtube" ? `yt_${sourceId}` : `nico_${sourceId}`;
   const out = path.join(CACHE_DIR, `${key}.mp4`);
   if (fs.existsSync(out) && fs.statSync(out).size > 0) return out;
 
-  const url = sourceType === "youtube"
-    ? `https://www.youtube.com/watch?v=${sourceId}`
-    : `https://www.nicovideo.jp/watch/${sourceId}`;
+  const url =
+    sourceType === "youtube"
+      ? `https://www.youtube.com/watch?v=${sourceId}`
+      : `https://www.nicovideo.jp/watch/${sourceId}`;
 
-  // Try with cookies first
-  let result = await tryDownload(sourceType, url, out);
-  // If failed and we used cookies, try without
-  if (!result && sourceType === "youtube" && config.youtubeCookies && fs.existsSync(config.youtubeCookies)) {
-    console.log(`[downloader] cookie download failed, retrying without cookies`);
-    result = await tryDownload(sourceType, url, out, true);
+  if (sourceType === "niconico" && !config.nicoCookies) {
+    console.log(`[downloader] NICO_COOKIES 未設定のため ${sourceId} のダウンロードをスキップ`);
+    return null;
   }
-  return result;
-}
 
-async function tryDownload(
-  sourceType: string,
-  url: string,
-  out: string,
-  noCookies = false,
-): Promise<string | null> {
-  const tmp = path.join(CACHE_DIR, `${path.basename(out, ".mp4")}.part.mp4`);
-  const args = [...ytDlpBaseArgs(sourceType === "youtube" ? "youtube" : "niconico")];
-  if (noCookies) {
-    // Remove cookies argument
-    for (let i = args.length - 1; i >= 0; i--) {
-      if (args[i] === "--cookies") { args.splice(i, 2); break; }
-    }
-  }
+  const tmp = path.join(CACHE_DIR, `${key}.part.mp4`);
   try {
     console.log(`[downloader] downloading ${url}`);
     await run(
       "yt-dlp",
       [
-        ...args,
+        ...ytDlpBaseArgs(sourceType === "youtube" ? "youtube" : "niconico"),
         "-f",
         "bv*[height<=720]+ba/bv*[height<=720]/b[height<=720]/b",
         "--merge-output-format",
@@ -110,16 +92,17 @@ async function tryDownload(
       return out;
     }
     // yt-dlpが拡張子を変えた場合のフォールバック
-    for (const f of fs.readdirSync(CACHE_DIR)) {
-      if (f.startsWith(path.basename(out, ".mp4")) && f.endsWith(".mp4") && f !== path.basename(out)) {
-        fs.renameSync(path.join(CACHE_DIR, f), out);
-        return out;
-      }
+    const cand = fs.readdirSync(CACHE_DIR).find((f) => f.startsWith(`${key}.part`));
+    if (cand) {
+      fs.renameSync(path.join(CACHE_DIR, cand), out);
+      return out;
     }
     return null;
   } catch (e) {
     console.error(`[downloader] failed ${url}:`, (e as Error).message?.slice(0, 500));
-    try { if (fs.existsSync(tmp)) fs.unlinkSync(tmp); } catch {}
+    try {
+      if (fs.existsSync(tmp)) fs.unlinkSync(tmp);
+    } catch {}
     return null;
   }
 }
