@@ -155,7 +155,7 @@ export function play(req: PlayRequest): PlayHandle {
 
   if (req.inputFile) {
     if (req.offsetSec && req.offsetSec > 0.5) args.push("-ss", String(Math.floor(req.offsetSec)));
-    args.push("-re", "-i", req.inputFile);
+    args.push("-err_detect", "ignore_err", "-re", "-i", req.inputFile);
     mapArgs = ["-map", "0:v:0", "-map", "0:a:0?"];
     audioMixLabel = "0:a";
     filters.push(
