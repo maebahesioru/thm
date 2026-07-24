@@ -24,6 +24,17 @@ export type PlayHandle = {
 
 const RTMP_URL = () => `rtmps://a.rtmp.youtube.com/live2/${config.youtubeStreamKey}`;
 
+function getNextSegmentNumber() {
+  let maxNum = 0;
+  try {
+    for (const f of fs.readdirSync(HLS_DIR)) {
+      const m = f.match(/^seg_(\d+)\.ts$/);
+      if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
+    }
+  } catch {}
+  return maxNum + 1;
+}
+
 // 上部タイトル (背景なし)
 function buildTitleBar(): string | null {
   const font = findFont(true);
@@ -93,35 +104,24 @@ function buildPlaceholderInput(title: string, color: string): { args: string[]; 
 }
 
 function buildOutputArgs(): string[] {
-  if (config.streamMode === "rtmp") {
-    return ["-f", "flv", RTMP_URL()];
-  }
   fs.mkdirSync(HLS_DIR, { recursive: true });
 
-  // 既存セグメントの最大番号を取得し、番組切替でも番号を継続させる
-  let maxNum = 0;
-  try {
-    for (const f of fs.readdirSync(HLS_DIR)) {
-      const m = f.match(/^seg_(\d+)\.ts$/);
-      if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
-    }
-  } catch {}
-
-  return [
-    "-f",
-    "hls",
-    "-hls_time",
-    "4",
-    "-hls_list_size",
-    "30",
-    "-hls_flags",
-    "delete_segments+omit_endlist",
-    "-start_number",
-    String(maxNum + 1),
-    "-hls_segment_filename",
-    path.join(HLS_DIR, "seg_%05d.ts"),
+  const hlsArgs = [
+    "-f", "hls", "-hls_time", "4", "-hls_list_size", "30",
+    "-hls_flags", "delete_segments+omit_endlist",
+    "-start_number", String(getNextSegmentNumber()),
+    "-hls_segment_filename", path.join(HLS_DIR, "seg_%05d.ts"),
     path.join(HLS_DIR, "index.m3u8"),
   ];
+
+  // RTMPモードならYouTubeにも同時出力
+  if (config.streamMode === "rtmp" && config.youtubeStreamKey) {
+    return [
+      ...hlsArgs,
+      "-f", "flv", `rtmps://a.rtmp.youtube.com/live2/${config.youtubeStreamKey}`,
+    ];
+  }
+  return hlsArgs;
 }
 
 // ffmpegで1ユニット再生。完了/中断でresolve。
