@@ -70,8 +70,16 @@ async function pollOnce() {
       // 新着検出 -> ライブ/プレミア判定
       const info = await fetchWatchInfo(e.videoId);
       if (!info) {
-        // 判定不能 (bot対策など) -> 次回ポーリングで再試行
-        console.log(`[monitor] 判定保留: ${e.title} (${e.videoId})`);
+        // 判定不能 → 初回は保留、2回目で諦めて既読化
+        const seen = await prisma.seenVideo.findUnique({ where: { id: e.videoId + "_retry" } });
+        if (seen) {
+          await prisma.seenVideo.create({ data: { id: e.videoId } }).catch(() => {});
+          await prisma.seenVideo.delete({ where: { id: e.videoId + "_retry" } }).catch(() => {});
+          console.log(`[monitor] 判定諦め: ${e.title}`);
+        } else {
+          await prisma.seenVideo.create({ data: { id: e.videoId + "_retry" } }).catch(() => {});
+          console.log(`[monitor] 判定保留: ${e.title} (${e.videoId})`);
+        }
         continue;
       }
       await prisma.seenVideo.create({ data: { id: e.videoId } });
