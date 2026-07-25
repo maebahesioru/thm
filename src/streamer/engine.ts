@@ -91,6 +91,8 @@ export class Engine {
     });
     await prisma.queueItem.updateMany({ where: { status: "airing" }, data: { status: "queued" } });
     await prisma.interruption.updateMany({ where: { status: "airing" }, data: { status: "pending" } });
+    // 古いpendingは掃除 (前回起動時の残骸)
+    await prisma.interruption.updateMany({ where: { status: "pending" }, data: { status: "done" } });
 
     // 初回は直近3時間分だけ素早く生成し、残りはバックグラウンドで補完
     await this.topUpSchedule(true, 3);
