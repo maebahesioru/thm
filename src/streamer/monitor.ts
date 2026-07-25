@@ -70,7 +70,7 @@ async function pollOnce() {
       // 新着検出 -> ライブ/プレミア判定
       const info = await fetchWatchInfo(e.videoId);
       if (!info) {
-        // 判定不能 → 初回は保留、2回目で諦めて既読化
+        // 判定不能 → 初回は保留、2回目で諦めて既読化 (割り込みしない)
         const seen = await prisma.seenVideo.findUnique({ where: { id: e.videoId + "_retry" } });
         if (seen) {
           await prisma.seenVideo.create({ data: { id: e.videoId } }).catch(() => {});
@@ -78,9 +78,8 @@ async function pollOnce() {
           console.log(`[monitor] 判定諦め: ${e.title}`);
         } else {
           await prisma.seenVideo.create({ data: { id: e.videoId + "_retry" } }).catch(() => {});
-          console.log(`[monitor] 判定保留: ${e.title} (${e.videoId})`);
         }
-        continue;
+        continue; // ← 既読化せず、割り込みもしない
       }
       await prisma.seenVideo.create({ data: { id: e.videoId } });
 
@@ -112,6 +111,7 @@ async function pollOnce() {
         continue;
       }
       console.log(`[monitor] 新着検出: ${ch.label}「${e.title}」(${e.videoId})`);
+      // プレミアでもライブでもない → 即割り込み
       await prisma.interruption.create({
         data: {
           channelId,
