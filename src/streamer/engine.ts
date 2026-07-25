@@ -183,7 +183,22 @@ export class Engine {
     // 割り込み動画
     const startedAt = Date.now();
     writeTitleFile(`【緊急速報】 ${interruption.title}`);
-    const file = await downloadVideo("youtube", interruption.youtubeVideoId);
+
+    // DL中はバンパーをループ再生 (長いDLでも視聴者を退屈させない)
+    const dlPromise = downloadVideo("youtube", interruption.youtubeVideoId);
+    let file: string | null = null;
+    const loopUntil = Date.now() + 120000; // 最大2分待つ
+    while (!file && Date.now() < loopUntil) {
+      file = await Promise.race([
+        dlPromise.then(f => f),
+        new Promise<string | null>(r => setTimeout(() => r(null), 15000)),
+      ]);
+      if (!file) {
+        writeTitleFile(`【緊急速報】 動画を取得中です...`);
+        await this.playBumper(`【緊急速報】${interruption.channelTitle}で新着動画が公開されました`, BUMPER_SEC);
+      }
+    }
+    if (!file) file = await dlPromise; // 最終確認
     if (file) {
       const duration = await probeDuration(file);
       await this.playUnit({
